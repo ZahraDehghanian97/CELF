@@ -87,6 +87,16 @@ def greedy_benefit_cost(budget, adjacency_matrix):
             return S
     return S
 
+# this function return set wich maximize the obj. func.
+def maximize_gane(S1,S2):
+    gane_s1 = compute_gane(S1)
+    gane_s2 = compute_gane(S2)
+    if gane_s2>gane_s1 :
+        return S2 , gane_s2
+    else:
+        return S1 , gane_s1
+
+
 
 input_file = 'facebook101_princton_weighted.mat'
 txt_input_file = 'dataset.txt'
@@ -98,4 +108,4 @@ S1 = greedy_unit_cost(budget, adjacency_matrix)
 print("opt. set with unit-cost gain = " + str(S1))
 S2 = greedy_benefit_cost(budget, adjacency_matrix)
 print("opt. set with benefit-cost gain = " + str(S2))
-
+S , gane = maximize_gane(S1,S2)
