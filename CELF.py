@@ -56,7 +56,33 @@ def greedy_unit_cost(budget, adjacency_matrix):
         if cost + cost_node < budget:
             cost += cost_node
             S.append(node)
-            print("add "+str(node)+" to opt. set. remaining budget = "+str(round(budget - cost , 1)))
+            print("add " + str(node) + " to opt. set. remaining budget = " + str(round(budget - cost, 1)))
+        else:
+            return S
+    return S
+
+
+# this function run greedy hill climbing with benefit cost marginal gane
+def greedy_benefit_cost(budget, adjacency_matrix):
+    print("run benefit-cost marginal gane")
+    S = []
+    cost = 0
+    C = []
+    for i in range(len_matrix):
+        C.append(compute_cost(i,adjacency_matrix))
+    while cost < budget and len(S) < len_matrix:
+        print("start finding " + str(len(S) + 1) + 'th member of opt. set with "unit-cost" obj. func.')
+        f_si = np.zeros(len_matrix)
+        for node in range(len_matrix):
+            if node not in S:
+                f_si[node] = (score_add(node, S, adjacency_matrix)/C[node])
+        score_max = max(f_si)
+        node = np.where(f_si == score_max)[0][0]
+        cost_node = C[node]
+        if cost + cost_node < budget:
+            cost += cost_node
+            S.append(node)
+            print("add " + str(node) + " to opt. set. remaining budget = " + str(round(budget - cost, 1)))
         else:
             return S
     return S
@@ -67,10 +93,9 @@ txt_input_file = 'dataset.txt'
 # change_MAT_to_TXT(input_file, txt_input_file)
 adjacency_matrix = build_matrix(txt_input_file, 6596)
 len_matrix = len(adjacency_matrix)
-
-# Generate n realization of probabilistic Graph
-print("Generate realization ")
-n = 10  # number of realization
 budget = 1000
-S = greedy_unit_cost(budget, adjacency_matrix)
-print("S set = " + str(S))
+S1 = greedy_unit_cost(budget, adjacency_matrix)
+print("opt. set with unit-cost gain = " + str(S1))
+S2 = greedy_benefit_cost(budget, adjacency_matrix)
+print("opt. set with benefit-cost gain = " + str(S2))
+
