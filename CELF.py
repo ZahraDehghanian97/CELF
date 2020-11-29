@@ -59,7 +59,7 @@ def IC(list_g, S):
 
 
 # this function compute mean cost of S set in all realization
-# in this implementation cost = sigma over weight of edge of S
+# in this implementation cost = sigma over weight of edges in S
 def cost(S, list_g):
     temp = []
     for s in S:
@@ -88,7 +88,6 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
     SPREAD = Q[0][1]
     Q = Q[1:]
     print("add " + str(Q[0][0]) + " node to S , size S = 1 , Spread = "+str(SPREAD))
-
     flag = True
     counter_s = 1
     while flag:
@@ -103,6 +102,8 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
             Q = sorted(Q, key=lambda x: x[1], reverse=True)
             check = (Q[0][0] == current)
         c = cost(S + [Q[0][0]], g)
+        if not unitCost_or_benefitRatio:
+            Q[0][1] *= c
         if 0.3 * (Q[0][1]) > c :
             SPREAD = Q[0][1]
             S.append(Q[0][0])
@@ -118,13 +119,13 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
 # unitCost_or_benefitRatio is a flag to change marginal gane to have theoretically guarantee
 def CELF(g):
     start_time = time.time()
-    print("<-----unit cost----->")
+    print("<----- unit cost ----->")
     S_unit, SPREAD_unit = lazy_hill_climbing(g, True)  # unit cost obj. func.
     time_unit_cost = [time.time() - start_time]
     print("finish unit-cost part ")
     print("time unit-cost = " + str(time_unit_cost))
     start_time2 = time.time()
-    print("<-----benefit Ratio ------>")
+    print("<----- benefit Ratio ------>")
     S_benefit, SPREAD_benefit = lazy_hill_climbing(g, False)  # benefit Ratio obj. func.
     time_benefit_ratio = [time.time() - start_time2]
     print("finish benefit-ratio part ")
@@ -146,7 +147,7 @@ adjacency_matrix = build_matrix(txt_input_file, num_node)
 print("read input file and convert to matrix")
 
 # genetate realization
-num_realization = 1
+num_realization = 5
 list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
 print("generate " + str(num_realization) + " realization successfully")
 
