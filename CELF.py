@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import time
 import scipy.io
@@ -38,10 +37,12 @@ def build_probable_matrices(adjacency_matrix, mc, p):
     return list_m
 
 
+# this function return out neighbor of node
 def get_neighbor(g, node):
     return np.nonzero(g[node])
 
 
+# this function compute Spread if S set over all graph in list_g
 def IC(list_g, S):
     spread = []
     for i in range(len(list_g)):
@@ -57,9 +58,11 @@ def IC(list_g, S):
     return np.mean(spread)
 
 
+# this function compute mean cost of S set in all realization
+# in this implementation cost = sigma over weight of edge of S
 def cost(S, list_g):
     temp = []
-    for s in S :
+    for s in S:
         temp.append(adjacency_matrix[s])
     temp = np.array(temp)
     cost = 0
@@ -70,39 +73,68 @@ def cost(S, list_g):
         temp1 = np.array(temp1)
         temp2 = np.multiply(temp1, temp)
         cost += sum(sum(temp2))
+    if cost == 0: cost += 1
     return cost / len(list_g)
 
 
-def celf(g):
-    start_time = time.time()
-    marg_gain = [IC(g, [node]) for node in range(num_node)]
+# this function run "lazy hill climbing" Idea to speed up computing marginal gane
+def lazy_hill_climbing(g, unitCost_or_benefitRatio):
+    if unitCost_or_benefitRatio:  # unit cost version :
+        marg_gain = [IC(g, [node]) for node in range(num_node)]
+    else:  # benefit ration version :
+        marg_gain = [(IC(g, [node]) / cost([node], g)) for node in range(num_node)]
     Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
-    S, spread, SPREAD = [Q[0][0]], Q[0][1], [Q[0][1]]
-    Q, LOOKUPS, timelapse = Q[1:], [num_node], [time.time() - start_time]
-    print("find 1st member of S")
+    S = [Q[0][0]]
+    SPREAD = Q[0][1]
+    Q = Q[1:]
+    print("add " + str(Q[0][0]) + " node to S , size S = 1 , Spread = "+str(SPREAD))
+
     flag = True
-    o = 2
+    counter_s = 1
     while flag:
         check, node_lookup = False, 0
         while not check:
             node_lookup += 1
             current = Q[0][0]
-            Q[0] = (current, IC(g, S + [current]) - spread)
+            if unitCost_or_benefitRatio:  # unit cost version :
+                Q[0] = (current, IC(g, S + [current]))
+            else:  # benefit ratio version :
+                Q[0] = (current, IC(g, S + [current]) / cost(S + [current], g))
             Q = sorted(Q, key=lambda x: x[1], reverse=True)
             check = (Q[0][0] == current)
-        if 0.3 * (spread + Q[0][1]) > cost(S + [Q[0][0]], g):
-            spread += Q[0][1]
+        c = cost(S + [Q[0][0]], g)
+        if 0.3 * (Q[0][1]) > c :
+            SPREAD = Q[0][1]
             S.append(Q[0][0])
-            SPREAD.append(spread)
-            LOOKUPS.append(node_lookup)
-            timelapse.append(time.time() - start_time)
-            print("add " + str(o) + "nd member of S")
             Q = Q[1:]
-            o += 1
+            counter_s += 1
+            print("add " + str(Q[0][0]) + " node to S , size S = "+str(counter_s)+" , Spread = "+str(SPREAD)+" , cost = "+str(c))
         else:
             flag = False
-    return S, SPREAD, timelapse, LOOKUPS
+    return S, SPREAD
 
+
+# this function run "cost-effective lazy-forward selection" algorithm
+# unitCost_or_benefitRatio is a flag to change marginal gane to have theoretically guarantee
+def CELF(g):
+    start_time = time.time()
+    print("<-----unit cost----->")
+    S_unit, SPREAD_unit = lazy_hill_climbing(g, True)  # unit cost obj. func.
+    time_unit_cost = [time.time() - start_time]
+    print("finish unit-cost part ")
+    print("time unit-cost = " + str(time_unit_cost))
+    start_time2 = time.time()
+    print("<-----benefit Ratio ------>")
+    S_benefit, SPREAD_benefit = lazy_hill_climbing(g, False)  # benefit Ratio obj. func.
+    time_benefit_ratio = [time.time() - start_time2]
+    print("finish benefit-ratio part ")
+    print("time benefit-ratio = " + str(time_benefit_ratio))
+    if SPREAD_benefit > SPREAD_unit:
+        S = S_benefit
+    else:
+        S = S_unit
+    final_time = [time.time() - start_time]
+    return S, final_time
 
 
 # load file
@@ -120,9 +152,9 @@ print("generate " + str(num_realization) + " realization successfully")
 
 # Run algorithms
 print("start running CELF...")
-celf_output = celf(list_realization)
-print("celf output:   " + str(celf_output[0]))
-print("run time = " + str(celf_output[2][-1]))
+S, t = CELF(list_realization)
+print("celf output:   " + str(S))
+print("run time = " + str(t))
 
 # list_q = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
 # adjacency_matrix = [[0,0.5,1],[0.5,0,0.25],[1,0.25,0]]
