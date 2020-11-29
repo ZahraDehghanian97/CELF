@@ -33,7 +33,7 @@ def get_neighbor(g, node):
     return neighbor
 
 
-def IC(g, S, p=0.5, mc=1000):
+def IC(list_g, S):
     """
     Input:  graph object, set of seed nodes, propagation probability
             and the number of Monte-Carlo simulations
@@ -42,7 +42,8 @@ def IC(g, S, p=0.5, mc=1000):
 
     # Loop over the Monte-Carlo Simulations
     spread = []
-    for i in range(mc):
+    for i in range(len(list_g)):
+        g = list_g[i]
         # Simulate propagation process
         new_active, A = S[:], S[:]
         while new_active:
@@ -51,10 +52,7 @@ def IC(g, S, p=0.5, mc=1000):
             new_ones = []
             for node in new_active:
                 # Determine neighbors that become infected
-                np.random.seed(i)
-                neighbor = get_neighbor(g, node)
-                success = np.random.uniform(0, 1, len(neighbor)) < p
-                new_ones += list(np.extract(success, neighbor))
+                new_ones += list(get_neighbor(g, node))
 
             new_active = list(set(new_ones) - set(A))
 
@@ -75,14 +73,14 @@ def greedy(g, k, p=0.1, mc=10):
     S, spread, timelapse, start_time = [], [], [], time.time()
 
     # Find k nodes with largest marginal gain
-    for _ in range(k):
+    for o in range(k):
 
         # Loop over nodes that are not yet in seed set to find biggest marginal gain
         best_spread = 0
-        for j in set(range(len(g))) - set(S):
+        for j in set(range(num_node)) - set(S):
 
             # Get the spread
-            s = IC(g, S + [j], p, mc)
+            s = IC(g, S + [j])
 
             # Update the winning node and spread so far
             if s > best_spread:
@@ -90,7 +88,7 @@ def greedy(g, k, p=0.1, mc=10):
 
         # Add the selected node to the seed set
         S.append(node)
-
+        print("find " + str(o + 1) + "nd member of S")
         # Add estimated spread and elapsed time
         spread.append(best_spread)
         timelapse.append(time.time() - start_time)
@@ -98,7 +96,7 @@ def greedy(g, k, p=0.1, mc=10):
     return (S, spread, timelapse)
 
 
-def celf(g, k, p=0.1, mc=10):
+def celf(g, k):
     """
     Input:  graph object, number of seed nodes
     Output: optimal seed set, resulting spread, time for each iteration
@@ -110,20 +108,19 @@ def celf(g, k, p=0.1, mc=10):
 
     # Calculate the first iteration sorted list
     start_time = time.time()
-    marg_gain = [IC(g, [node], p, mc) for node in range(len(g))]
+    marg_gain = [IC(g, [node]) for node in range(num_node)]
 
     # Create the sorted list of nodes and their marginal gain
-    Q = sorted(zip(range(len(g)), marg_gain), key=lambda x: x[1], reverse=True)
-
+    Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
     # Select the first node and remove from candidate list
     S, spread, SPREAD = [Q[0][0]], Q[0][1], [Q[0][1]]
-    Q, LOOKUPS, timelapse = Q[1:], [len(g)], [time.time() - start_time]
-
+    Q, LOOKUPS, timelapse = Q[1:], [num_node], [time.time() - start_time]
+    print("find 1st member of S")
     # --------------------
     # Find the next k-1 nodes using the list-sorting procedure
     # --------------------
 
-    for _ in range(k - 1):
+    for o in range(k - 1):
 
         check, node_lookup = False, 0
 
@@ -135,7 +132,7 @@ def celf(g, k, p=0.1, mc=10):
             current = Q[0][0]
 
             # Evaluate the spread function and store the marginal gain in the list
-            Q[0] = (current, IC(g, S + [current], p, mc) - spread)
+            Q[0] = (current, IC(g, S + [current]) - spread)
 
             # Re-sort the list
             Q = sorted(Q, key=lambda x: x[1], reverse=True)
@@ -149,24 +146,41 @@ def celf(g, k, p=0.1, mc=10):
         SPREAD.append(spread)
         LOOKUPS.append(node_lookup)
         timelapse.append(time.time() - start_time)
-
+        print("find "+str(o+2)+"nd member of S")
         # Remove the selected node from the list
         Q = Q[1:]
 
     return (S, SPREAD, timelapse, LOOKUPS)
 
+# this function build n realization of probabilistic graph
+def build_probable_matrixs(adjacency_matrix,mc, p):
+    list_m = []
+    for i in range(mc):
+        temp = np.array(adjacency_matrix)
+        for i in range(num_node):
+            indexes = np.nonzero(temp[i])
+            for j in indexes[0]:
+                temp[i, j] =  np.random.uniform(0, 1, 1)[0]< p
+        list_m.append(temp)
+    return list_m
+
 
 input_file = 'facebook101_princton_weighted.mat'
 txt_input_file = 'dataset.txt'
 # change_MAT_to_TXT(input_file, txt_input_file)
-adjacency_matrix = build_matrix(txt_input_file, 6596)
-
+num_node = 6596
+adjacency_matrix = build_matrix(txt_input_file, num_node)
+print("read input file and convert to matrix")
+#genetate realization
+num_realization = 5
+list_realization = build_probable_matrixs(adjacency_matrix,mc=num_realization , p =0.1)
+print("generate "+str(num_realization)+" realization successfully")
 # Run algorithms
-celf_output = celf(adjacency_matrix, 10, p=0.1, mc=2)
-greedy_output = greedy(adjacency_matrix, 10, p=0.1, mc=2)
-
-# Print resulting seed sets
+print("start running CELF")
+celf_output = celf(list_realization, 10)
 print("celf output:   " + str(celf_output[0]))
+print("start running greedy")
+greedy_output = greedy(list_realization, 10)
 print("greedy output: " + str(greedy_output[0]))
 
 # Plot settings
@@ -182,5 +196,4 @@ plt.ylabel('Computation Time (Seconds)')
 plt.xlabel('Size of Seed Set')
 plt.title('Computation Time')
 plt.legend(loc=2)
-
 plt.show()
