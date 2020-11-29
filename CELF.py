@@ -1,5 +1,4 @@
 import random
-
 import scipy.io
 import numpy as np
 
@@ -49,7 +48,7 @@ def greedy_unit_cost(budget, adjacency_matrix):
         f_si = np.zeros(len_matrix)
         for node in range(len_matrix):
             if node not in S:
-                f_si[node] += score_add(node, S, adjacency_matrix)
+                f_si[node] = score_add(node, S, adjacency_matrix)
         score_max = max(f_si)
         node = np.where(f_si == score_max)[0][0]
         cost_node = compute_cost(node, adjacency_matrix)
@@ -108,4 +107,4 @@ S1 = greedy_unit_cost(budget, adjacency_matrix)
 print("opt. set with unit-cost gain = " + str(S1))
 S2 = greedy_benefit_cost(budget, adjacency_matrix)
 print("opt. set with benefit-cost gain = " + str(S2))
-S , gane = maximize_gane(S1,S2)
+S , gane = maximize_gane(S1,S2,adjacency_matrix)
