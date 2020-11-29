@@ -1,0 +1,27 @@
+C:\Users\zdehg\AppData\Local\Programs\Python\Python37\python.exe "D:/univesity/foqelisans/complex network/HW1_98131059/Q4/test.py"
+read input file and convert to matrix
+generate 100 realization successfully
+start running CELF
+find 1st member of S
+find 2nd member of S
+find 3nd member of S
+find 4nd member of S
+find 5nd member of S
+find 6nd member of S
+find 7nd member of S
+find 8nd member of S
+find 9nd member of S
+find 10nd member of S
+celf output:   [412, 4894, 41, 6068, 2259, 5, 1195, 1232, 2214, 606]
+start running greedy
+find 1nd member of S
+find 2nd member of S
+find 3nd member of S
+find 4nd member of S
+find 5nd member of S
+find 6nd member of S
+find 7nd member of S
+find 8nd member of S
+find 9nd member of S
+find 10nd member of S
+greedy output: [412, 4894, 41, 6068, 2259, 5, 1195, 1232, 2214, 606]

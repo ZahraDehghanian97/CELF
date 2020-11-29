@@ -114,7 +114,7 @@ num_node = 6596
 adjacency_matrix = build_matrix(txt_input_file, num_node)
 print("read input file and convert to matrix")
 # genetate realization
-num_realization = 100
+num_realization = 10
 list_realization = build_probable_matrixs(adjacency_matrix, mc=num_realization, p=0.1)
 print("generate " + str(num_realization) + " realization successfully")
 # Run algorithms
@@ -132,6 +132,7 @@ plt.rcParams['xtick.bottom'] = False
 plt.rcParams['ytick.left'] = False
 
 # Plot Computation Time
+plt.subplots()
 plt.plot(range(1, len(greedy_output[2]) + 1), greedy_output[2], label="Greedy", color="#FBB4AE")
 plt.plot(range(1, len(celf_output[2]) + 1), celf_output[2], label="CELF", color="#B3CDE3")
 plt.ylabel('Computation Time (Seconds)')
@@ -140,11 +141,12 @@ plt.title('Computation Time')
 plt.legend(loc=2)
 
 # Plot Expected Spread by Seed Set Size
+plt.subplots()
 plt.plot(range(1, len(greedy_output[1]) + 1), greedy_output[1], label="Greedy", color="#FBB4AE")
 plt.plot(range(1, len(celf_output[1]) + 1), celf_output[1], label="CELF", color="#B3CDE3")
-plt.xlabel('Size of Seed Set');
+plt.xlabel('Size of Seed Set')
 plt.ylabel('Expected Spread')
-plt.title('Expected Spread');
+plt.title('Expected Spread')
 plt.legend(loc=2)
 
 plt.show()
