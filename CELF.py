@@ -73,7 +73,7 @@ def cost(S, list_g):
     return cost / len(list_g)
 
 
-def celf(g, k):
+def celf(g):
     start_time = time.time()
     marg_gain = [IC(g, [node]) for node in range(num_node)]
     Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
@@ -104,27 +104,27 @@ def celf(g, k):
     return S, SPREAD, timelapse, LOOKUPS
 
 
-#
-# # load file
-# input_file = 'facebook101_princton_weighted.mat'
-# txt_input_file = 'dataset.txt'
-# # change_MAT_to_TXT(input_file, txt_input_file)
-# num_node = 6596
-# adjacency_matrix = build_matrix(txt_input_file, num_node)
-# print("read input file and convert to matrix")
-#
-# # genetate realization
-# num_realization = 1
-# list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
-# print("generate " + str(num_realization) + " realization successfully")
-#
-# # Run algorithms
-# print("start running CELF")
-# celf_output = celf(list_realization, 10)
-# print("celf output:   " + str(celf_output[0]))
-# print("run time = " + str(celf_output[2][-1]))
 
-list_q = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
-adjacency_matrix = [[0,0.5,1],[0.5,0,0.25],[1,0.25,0]]
-S = [0, 1]
-print(cost(S, list_q))
+# load file
+input_file = 'facebook101_princton_weighted.mat'
+txt_input_file = 'dataset.txt'
+# change_MAT_to_TXT(input_file, txt_input_file)
+num_node = 6596
+adjacency_matrix = build_matrix(txt_input_file, num_node)
+print("read input file and convert to matrix")
+
+# genetate realization
+num_realization = 1
+list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+print("generate " + str(num_realization) + " realization successfully")
+
+# Run algorithms
+print("start running CELF")
+celf_output = celf(list_realization)
+print("celf output:   " + str(celf_output[0]))
+print("run time = " + str(celf_output[2][-1]))
+
+# list_q = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
+# adjacency_matrix = [[0,0.5,1],[0.5,0,0.25],[1,0.25,0]]
+# S = [0, 1]
+# print(cost(S, list_q))
