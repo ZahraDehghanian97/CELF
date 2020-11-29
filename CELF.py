@@ -119,7 +119,7 @@ list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization,
 print("generate " + str(num_realization) + " realization successfully")
 
 # Run algorithms
-print("start running CELF")
+print("start running CELF...")
 celf_output = celf(list_realization)
 print("celf output:   " + str(celf_output[0]))
 print("run time = " + str(celf_output[2][-1]))
