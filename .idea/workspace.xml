@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ceb66de0-5031-498d-880e-3b592936c936" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/zdehg.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/zdehg.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -30,12 +31,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="1558" />
+          <entry key="py" value="1685" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="1558" />
+          <entry key="Python" value="1685" />
         </counts>
       </usages-collector>
     </session>
@@ -45,9 +46,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CELF.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-643">
-              <caret column="13" selection-start-column="13" selection-end-column="13" />
+            <state relative-caret-position="1028">
+              <caret line="100" column="30" lean-forward="true" selection-start-line="100" selection-start-column="30" selection-end-line="100" selection-end-column="30" />
               <folding>
+                <element signature="e#0#13#0" expanded="true" />
                 <marker date="1606622497409" expanded="true" signature="2977:3134" ph="..." />
               </folding>
             </state>
@@ -57,11 +59,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
-              <caret line="197" column="17" selection-start-line="197" selection-start-column="17" selection-end-line="197" selection-end-column="17" />
+            <state relative-caret-position="1842">
+              <caret line="111" column="48" selection-start-line="111" selection-start-column="48" selection-end-line="111" selection-end-column="48" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
-                <marker date="1606631349996" expanded="true" signature="809:907" ph="..." />
+                <marker date="1606632951154" expanded="true" signature="837:967" ph="..." />
               </folding>
             </state>
           </provider>
@@ -239,9 +241,10 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/CELF.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-643">
-          <caret column="13" selection-start-column="13" selection-end-column="13" />
+        <state relative-caret-position="1028">
+          <caret line="100" column="30" lean-forward="true" selection-start-line="100" selection-start-column="30" selection-end-line="100" selection-end-column="30" />
           <folding>
+            <element signature="e#0#13#0" expanded="true" />
             <marker date="1606622497409" expanded="true" signature="2977:3134" ph="..." />
           </folding>
         </state>
@@ -249,11 +252,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="197" column="17" selection-start-line="197" selection-start-column="17" selection-end-line="197" selection-end-column="17" />
+        <state relative-caret-position="1842">
+          <caret line="111" column="48" selection-start-line="111" selection-start-column="48" selection-end-line="111" selection-end-column="48" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
-            <marker date="1606631349996" expanded="true" signature="809:907" ph="..." />
+            <marker date="1606632951154" expanded="true" signature="837:967" ph="..." />
           </folding>
         </state>
       </provider>
