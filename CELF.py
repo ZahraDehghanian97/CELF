@@ -1,6 +1,7 @@
-import random
-import scipy.io
+import matplotlib.pyplot as plt
 import numpy as np
+import time
+import scipy.io
 
 
 # this function convert MAT file to txt
@@ -24,87 +25,78 @@ def build_matrix(dataset, size_matrix):
     return result
 
 
-def score_add(node, S, A):
-    score = 0
-    for j in range(len_matrix):
-        if A[node, j] > 0 and (j not in S):
-            score += 1
-    score *= 0.3
-    return score
+def get_neighbor(g, node):
+    return np.nonzero(g[node])
 
 
-# this function compute cost of choosing a node
-def compute_cost(node, adjacency_matrix):
-    return sum(adjacency_matrix[node])
+def IC(list_g, S):
+    spread = []
+    for i in range(len(list_g)):
+        g = list_g[i]
+        new_active, A = S[:], S[:]
+        while new_active:
+            new_ones = []
+            for node in new_active:
+                new_ones += list(get_neighbor(g, node))
+            new_active = list(set(new_ones) - set(A))
+            A += new_active
+        spread.append(len(A))
+    return np.mean(spread)
 
 
-# this function run greedy hill climbing with unit cost marginal gane
-def greedy_unit_cost(budget, adjacency_matrix):
-    print("run unit-cost marginal gane")
-    S = []
-    cost = 0
-    while cost < budget and len(S) < len_matrix:
-        print("start finding " + str(len(S) + 1) + 'th member of opt. set with "unit-cost" obj. func.')
-        f_si = np.zeros(len_matrix)
-        for node in range(len_matrix):
-            if node not in S:
-                f_si[node] = score_add(node, S, adjacency_matrix)
-        score_max = max(f_si)
-        node = np.where(f_si == score_max)[0][0]
-        cost_node = compute_cost(node, adjacency_matrix)
-        if cost + cost_node < budget:
-            cost += cost_node
-            S.append(node)
-            print("add " + str(node) + " to opt. set. remaining budget = " + str(round(budget - cost, 1)))
-        else:
-            return S
-    return S
+def celf(g, k):
+    start_time = time.time()
+    marg_gain = [IC(g, [node]) for node in range(num_node)]
+    Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
+    S, spread, SPREAD = [Q[0][0]], Q[0][1], [Q[0][1]]
+    Q, LOOKUPS, timelapse = Q[1:], [num_node], [time.time() - start_time]
+    print("find 1st member of S")
+    for o in range(k - 1):
+        check, node_lookup = False, 0
+        while not check:
+            node_lookup += 1
+            current = Q[0][0]
+            Q[0] = (current, IC(g, S + [current]) - spread)
+            Q = sorted(Q, key=lambda x: x[1], reverse=True)
+            check = (Q[0][0] == current)
+        spread += Q[0][1]
+        S.append(Q[0][0])
+        SPREAD.append(spread)
+        LOOKUPS.append(node_lookup)
+        timelapse.append(time.time() - start_time)
+        print("find " + str(o + 2) + "nd member of S")
+        Q = Q[1:]
+    return S, SPREAD, timelapse, LOOKUPS
 
 
-# this function run greedy hill climbing with benefit cost marginal gane
-def greedy_benefit_cost(budget, adjacency_matrix):
-    print("run benefit-cost marginal gane")
-    S = []
-    cost = 0
-    C = []
-    for i in range(len_matrix):
-        C.append(compute_cost(i,adjacency_matrix))
-    while cost < budget and len(S) < len_matrix:
-        print("start finding " + str(len(S) + 1) + 'th member of opt. set with "unit-cost" obj. func.')
-        f_si = np.zeros(len_matrix)
-        for node in range(len_matrix):
-            if node not in S:
-                f_si[node] = (score_add(node, S, adjacency_matrix)/C[node])
-        score_max = max(f_si)
-        node = np.where(f_si == score_max)[0][0]
-        cost_node = C[node]
-        if cost + cost_node < budget:
-            cost += cost_node
-            S.append(node)
-            print("add " + str(node) + " to opt. set. remaining budget = " + str(round(budget - cost, 1)))
-        else:
-            return S
-    return S
-
-# this function return set wich maximize the obj. func.
-def maximize_gane(S1,S2):
-    gane_s1 = compute_gane(S1)
-    gane_s2 = compute_gane(S2)
-    if gane_s2>gane_s1 :
-        return S2 , gane_s2
-    else:
-        return S1 , gane_s1
+# this function build n realization of probabilistic graph
+def build_probable_matrices(adjacency_matrix, mc, p):
+    list_m = []
+    for i in range(mc):
+        temp = np.array(adjacency_matrix)
+        for i in range(num_node):
+            indexes = np.nonzero(temp[i])
+            for j in indexes[0]:
+                temp[i, j] = np.random.uniform(0, 1, 1)[0] < p
+        list_m.append(temp)
+    return list_m
 
 
-
+# load file
 input_file = 'facebook101_princton_weighted.mat'
 txt_input_file = 'dataset.txt'
 # change_MAT_to_TXT(input_file, txt_input_file)
-adjacency_matrix = build_matrix(txt_input_file, 6596)
-len_matrix = len(adjacency_matrix)
-budget = 1000
-S1 = greedy_unit_cost(budget, adjacency_matrix)
-print("opt. set with unit-cost gain = " + str(S1))
-S2 = greedy_benefit_cost(budget, adjacency_matrix)
-print("opt. set with benefit-cost gain = " + str(S2))
-S , gane = maximize_gane(S1,S2,adjacency_matrix)
+num_node = 6596
+adjacency_matrix = build_matrix(txt_input_file, num_node)
+print("read input file and convert to matrix")
+
+# genetate realization
+num_realization = 1
+list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+print("generate " + str(num_realization) + " realization successfully")
+
+# Run algorithms
+print("start running CELF")
+celf_output = celf(list_realization, 10)
+print("celf output:   " + str(celf_output[0]))
+print("run time = " + str(celf_output[2][-1]))

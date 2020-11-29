@@ -28,13 +28,15 @@ def build_matrix(dataset, size_matrix):
 def get_neighbor(g, node):
     return np.nonzero(g[node])
 
-def IC2(list_g,S):
+
+def IC2(list_g, S):
     score = 0
-    for g in list_g :
-        for s in S :
+    for g in list_g:
+        for s in S:
             score += np.count_nonzero(g[s])
-    score/= len(list_g)
+    score /= len(list_g)
     return score
+
 
 def IC(list_g, S):
     spread = []
@@ -138,9 +140,11 @@ plt.title('Computation Time')
 plt.legend(loc=2)
 
 # Plot Expected Spread by Seed Set Size
-plt.plot(range(1,len(greedy_output[1])+1),greedy_output[1],label="Greedy",color="#FBB4AE")
-plt.plot(range(1,len(celf_output[1])+1),celf_output[1],label="CELF",color="#B3CDE3")
-plt.xlabel('Size of Seed Set'); plt.ylabel('Expected Spread')
-plt.title('Expected Spread'); plt.legend(loc=2)
+plt.plot(range(1, len(greedy_output[1]) + 1), greedy_output[1], label="Greedy", color="#FBB4AE")
+plt.plot(range(1, len(celf_output[1]) + 1), celf_output[1], label="CELF", color="#B3CDE3")
+plt.xlabel('Size of Seed Set');
+plt.ylabel('Expected Spread')
+plt.title('Expected Spread');
+plt.legend(loc=2)
 
 plt.show()
