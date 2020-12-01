@@ -55,7 +55,22 @@ def IC(list_g, S):
             new_active = list(set(new_ones[0]) - set(A))
             A += new_active
         spread.append(len(A))
-    return np.mean(spread)
+    return np.mean(spread) ,spread
+
+def IC2(g, S):
+    spread = []
+    new_active = S[:]
+    A = []
+    temp = []
+    while new_active:
+        A+=(new_active)
+        temp.append(len(A))
+        new_ones = []
+        for node in new_active:
+            new_ones += list(get_neighbor(g, node))
+        new_active = list(set(new_ones[0]) - set(A))
+
+    return A, temp
 
 
 # this function compute mean cost of S set in all realization
@@ -85,15 +100,17 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
         marg_gain = [(IC(g, [node]) / cost([node], g)) for node in range(num_node)]
     Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
     S = [Q[0][0]]
-    SPREAD = Q[0][1]
+    if not unitCost_or_benefitRatio :
+        SPREAD = cost(S,g)
+    else : SPREAD = 1
+    SPREAD = SPREAD * Q[0][1]  / 2
     Q = Q[1:]
-    print("add " + str(Q[0][0]) + " node to S , size S = 1 , Spread = "+str(SPREAD))
+    print("add " + str(Q[0][0]) + " node to S , size S = 1 , Spread = " + str(SPREAD))
     flag = True
     counter_s = 1
     while flag:
-        check, node_lookup = False, 0
+        check = False
         while not check:
-            node_lookup += 1
             current = Q[0][0]
             if unitCost_or_benefitRatio:  # unit cost version :
                 Q[0] = (current, IC(g, S + [current]))
@@ -102,14 +119,16 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
             Q = sorted(Q, key=lambda x: x[1], reverse=True)
             check = (Q[0][0] == current)
         c = cost(S + [Q[0][0]], g)
-        if not unitCost_or_benefitRatio:
-            Q[0][1] *= c
-        if 0.3 * (Q[0][1]) > c :
-            SPREAD = Q[0][1]
+        temp = Q[0][1] / 2
+        if unitCost_or_benefitRatio:
+            temp /= c
+        if 0.3 * (temp) > 1:
+            SPREAD = temp * c
             S.append(Q[0][0])
             Q = Q[1:]
             counter_s += 1
-            print("add " + str(Q[0][0]) + " node to S , size S = "+str(counter_s)+" , Spread = "+str(SPREAD)+" , cost = "+str(c))
+            print("add " + str(Q[0][0]) + " node to S , size S = " + str(counter_s) + " , Spread = " + str(
+                SPREAD) + " , cost = " + str(c))
         else:
             flag = False
     return S, SPREAD
@@ -132,10 +151,12 @@ def CELF(g):
     print("time benefit-ratio = " + str(time_benefit_ratio))
     if SPREAD_benefit > SPREAD_unit:
         S = S_benefit
+        spread = SPREAD_benefit
     else:
         S = S_unit
+        spread = SPREAD_unit
     final_time = [time.time() - start_time]
-    return S, final_time
+    return S, spread, final_time
 
 
 # load file
@@ -145,19 +166,33 @@ txt_input_file = 'dataset.txt'
 num_node = 6596
 adjacency_matrix = build_matrix(txt_input_file, num_node)
 print("read input file and convert to matrix")
+for i in range(20):
+    # genetate realization
+    num_realization = 5
+    list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+    print("generate " + str(num_realization) + " realization successfully")
 
-# genetate realization
-num_realization = 5
-list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
-print("generate " + str(num_realization) + " realization successfully")
+    Ic1 , spread1 = (IC(list_realization,[2669,1070,1857]))
+    Ic2, spread2 = (IC(list_realization, [2669, 1070, 1857,1]))
+    if Ic1 > Ic2 :
+        for i in range(5):
+            if spread1[i]>spread2[i]:
+                print("bad case happen")
+                bad_case = list_realization[i]
+                x1, y1 =IC2(bad_case,[2669,1070,1857])
+                x2 , y2 =IC2(bad_case, [2669, 1070, 1857,1])
+                for i in range(min(len(y1),len(y2))):
+                    print(str(y2[i]-y1[i]))
 
-# Run algorithms
-print("start running CELF...")
-S, t = CELF(list_realization)
-print("celf output:   " + str(S))
-print("run time = " + str(t))
+# # Run algorithms
+# print("start running CELF...")
+# S, spread, t = CELF(list_realization)
+# print("<----------------result CELF Algorithm ----------------->")
+# print("celf output =  " + str(S))
+# print("mean spread value = " + str(spread))
+# print("run time = " + str(t[0]))
 
-# list_q = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
+#### simple fast test
+# list_realization = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
 # adjacency_matrix = [[0,0.5,1],[0.5,0,0.25],[1,0.25,0]]
-# S = [0, 1]
-# print(cost(S, list_q))
+# num_node = 3
