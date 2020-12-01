@@ -127,8 +127,7 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
             S.append(Q[0][0])
             Q = Q[1:]
             counter_s += 1
-            print("add " + str(Q[0][0]) + " node to S , size S = " + str(counter_s) + " , Spread = " + str(
-                SPREAD) + " , cost = " + str(c))
+            print("add " + str(Q[0][0]) + " node to S , size S = " + str(counter_s) )#+ " , Spread = " + str(SPREAD) + " , cost = " + str(c))
         else:
             flag = False
     return S, SPREAD
@@ -166,31 +165,36 @@ txt_input_file = 'dataset.txt'
 num_node = 6596
 adjacency_matrix = build_matrix(txt_input_file, num_node)
 print("read input file and convert to matrix")
-for i in range(20):
-    # genetate realization
-    num_realization = 5
-    list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
-    print("generate " + str(num_realization) + " realization successfully")
+# genetate realization
+num_realization = 5
+list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+print("generate " + str(num_realization) + " realization successfully")
 
-    Ic1 , spread1 = (IC(list_realization,[2669,1070,1857]))
-    Ic2, spread2 = (IC(list_realization, [2669, 1070, 1857,1]))
-    if Ic1 > Ic2 :
-        for i in range(5):
-            if spread1[i]>spread2[i]:
-                print("bad case happen")
-                bad_case = list_realization[i]
-                x1, y1 =IC2(bad_case,[2669,1070,1857])
-                x2 , y2 =IC2(bad_case, [2669, 1070, 1857,1])
-                for i in range(min(len(y1),len(y2))):
-                    print(str(y2[i]-y1[i]))
+# for i in range(20):
+#     # genetate realization
+#     num_realization = 5
+#     list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+#     print("generate " + str(num_realization) + " realization successfully")
+#
+#     Ic1 , spread1 = (IC(list_realization,[2669,1070,1857]))
+#     Ic2, spread2 = (IC(list_realization, [2669, 1070, 1857,1]))
+#     if Ic1 > Ic2 :
+#         for i in range(5):
+#             if spread1[i]>spread2[i]:
+#                 print("bad case happen")
+#                 bad_case = list_realization[i]
+#                 x1, y1 =IC2(bad_case,[2669,1070,1857])
+#                 x2 , y2 =IC2(bad_case, [2669, 1070, 1857,1])
+#                 for i in range(min(len(y1),len(y2))):
+#                     print(str(y2[i]-y1[i]))
 
-# # Run algorithms
-# print("start running CELF...")
-# S, spread, t = CELF(list_realization)
-# print("<----------------result CELF Algorithm ----------------->")
-# print("celf output =  " + str(S))
-# print("mean spread value = " + str(spread))
-# print("run time = " + str(t[0]))
+# Run algorithms
+print("start running CELF...")
+S, spread, t = CELF(list_realization)
+print("<----------------result CELF Algorithm ----------------->")
+print("celf output =  " + str(S))
+print("mean spread value = " + str(spread))
+print("run time = " + str(t[0]))
 
 #### simple fast test
 # list_realization = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
