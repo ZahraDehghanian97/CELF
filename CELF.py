@@ -1,17 +1,5 @@
 import numpy as np
 import time
-import scipy.io
-
-
-# this function convert MAT file to txt
-def change_MAT_to_TXT(input_file, output_file):
-    mat = scipy.io.loadmat(input_file)
-    A = mat.__getitem__('A')
-    file = open(output_file, 'w')
-    for i in range(A.shape[0]):
-        for j in A[i].nonzero()[1]:
-            file.write(str(i) + ' ' + str(j) + ' ' + str(A[i, j]) + '\n')
-    file.close()
 
 
 # this function build adjeceny matrix from txt file
@@ -32,14 +20,17 @@ def build_probable_matrices(adjacency_matrix, mc, p):
         for i in range(num_node):
             indexes = np.nonzero(temp[i])
             for j in indexes[0]:
-                temp[i, j] = np.random.uniform(0, 1, 1)[0] < p
-                temp[j,i] = temp[i,j]
+                if j >= i :
+                    temp[i, j] = np.random.uniform(0, 1, 1)[0] < p
+                    temp[j,i] = temp[i,j]
         list_m.append(temp)
     return list_m
 
 
 # this function return out neighbor of node
 def get_neighbor(g, node):
+    neighbor = np.nonzero(g[node])
+    if not neighbor: return []
     return np.nonzero(g[node])[0]
 
 
@@ -56,44 +47,18 @@ def IC(list_g, S):
             new_active = list(set(new_ones) - set(A))
             A += new_active
         spread.append(len(A))
-    return np.mean(spread) ,spread
+    return np.mean(spread)
 
-def IC2(g, S):
-    spread = []
-    new_active = S[:]
-    A = S[:]
-    temp = []
-    while new_active:
-        temp.append(len(A))
-        new_ones = []
-        for node in new_active:
-            new_ones += list(get_neighbor(g, node))
-        new_active = list(set(new_ones) - set(A))
-        A += new_active
-    return A, temp
 
-def IC3(g, S, i):
-    spread = []
-    new_active = S[:]
-    A = S[:]
-    temp = []
-    counter = 0
-    while new_active:
-        if counter== i :
-            print("----------------->"+str(counter))
-            print(new_active)
-        counter += 1
-        temp.append(len(A))
-        new_ones = []
-        for node in new_active:
-            new_ones += list(get_neighbor(g, node))
-            if counter == i: print(node,len(new_ones) , new_ones)
-        new_active = list(set(new_ones[0]) - set(A))
-        if counter == i: print(new_active)
-        A += new_active
-        if counter == i:print(A)
-        if counter == i:print("--------")
-    return A, temp
+def IC1(list_g, S):
+    score = 0
+    for g in list_g:
+        neighbor = []
+        for s in S:
+            neighbor.extend(get_neighbor(g,s))
+        score += len(list(set(neighbor)))
+    score /= len(list_g)
+    return score
 
 
 # this function compute mean cost of S set in all realization
@@ -117,18 +82,21 @@ def cost(S, list_g):
 
 # this function run "lazy hill climbing" Idea to speed up computing marginal gane
 def lazy_hill_climbing(g, unitCost_or_benefitRatio):
+    global save_IC_1
     if unitCost_or_benefitRatio:  # unit cost version :
-        marg_gain = [IC(g, [node]) for node in range(num_node)]
+        marg_gain = [IC1(g, [node]) for node in range(num_node)]
+        save_IC_1 = marg_gain
     else:  # benefit ration version :
-        marg_gain = [(IC(g, [node]) / cost([node], g)) for node in range(num_node)]
+        marg_gain = [save_IC_1[node] / cost([node], g) for node in range(num_node)]
     Q = sorted(zip(range(num_node), marg_gain), key=lambda x: x[1], reverse=True)
-    S = [Q[0][0]]
+    S , s = [Q[0][0]] , Q[0][1]
+    c = cost(S,g)
     if not unitCost_or_benefitRatio :
-        SPREAD = cost(S,g)
+        SPREAD = c
     else : SPREAD = 1
-    SPREAD = SPREAD * Q[0][1]  / 2
+    SPREAD = SPREAD * Q[0][1]
+    print("add " + str(Q[0][0]) + " node to S, Spread = " + str(SPREAD)+" , cost = "+str(c))
     Q = Q[1:]
-    print("add " + str(Q[0][0]) + " node to S , size S = 1 , Spread = " + str(SPREAD))
     flag = True
     counter_s = 1
     while flag:
@@ -136,23 +104,26 @@ def lazy_hill_climbing(g, unitCost_or_benefitRatio):
         while not check:
             current = Q[0][0]
             if unitCost_or_benefitRatio:  # unit cost version :
-                Q[0] = (current, IC(g, S + [current]))
+                Q[0] = (current, IC1(g, S + [current])-s)
             else:  # benefit ratio version :
-                Q[0] = (current, IC(g, S + [current]) / cost(S + [current], g))
+                Q[0] = (current, (IC1(g, S + [current]) / cost(S + [current], g))-s)
             Q = sorted(Q, key=lambda x: x[1], reverse=True)
             check = (Q[0][0] == current)
         c = cost(S + [Q[0][0]], g)
-        temp = Q[0][1] / 2
+        temp = Q[0][1]
+        temp+=s
         if unitCost_or_benefitRatio:
             temp /= c
         if 0.3 * (temp) > 1:
             SPREAD = temp * c
+            s+= Q[0][1]
             S.append(Q[0][0])
-            Q = Q[1:]
             counter_s += 1
-            print("add " + str(Q[0][0]) + " node to S , size S = " + str(counter_s) + " , Spread = " + str(
-                SPREAD) + " , cost = " + str(c))
+            print("add " + str(Q[0][0]) + " node to S, spread = "+str(SPREAD)+" , cost = "+str(c))
+            Q = Q[1:]
         else:
+            NSPREAD = temp * c
+            print("not add "+ str(Q[0][0]) + " node to S, spread = "+str(NSPREAD)+" , cost = "+str(c))
             flag = False
     return S, SPREAD
 
@@ -185,41 +156,23 @@ def CELF(g):
 # load file
 input_file = 'facebook101_princton_weighted.mat'
 txt_input_file = 'dataset.txt'
-# change_MAT_to_TXT(input_file, txt_input_file)
 num_node = 6596
 adjacency_matrix = build_matrix(txt_input_file, num_node)
 print("read input file and convert to matrix")
-for i in range(30):
-    # genetate realization
-    num_realization = 5
-    list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
-    print("generate " + str(num_realization) + " realization successfully")
 
-    Ic1 , spread1 = (IC(list_realization,[2669,1070,1857]))
-    Ic2, spread2 = (IC(list_realization, [2669, 1070, 1857,1]))
-    if Ic1 > Ic2 :
-        for i in range(5):
-            if spread1[i]>spread2[i]:
-                print("bad case happen")
-                bad_case = list_realization[i]
-                x1, y1 =IC2(bad_case,[2669,1070,1857])
-                x2 , y2 =IC2(bad_case, [2669, 1070, 1857,1])
-                for i in range(min(len(y1),len(y2))):
-                    if y2[i]-y1[i]< 0 :
-                        print(str(i)+ " : "+str(y2[i]-y1[i]))
-                        IC3(bad_case, [2669, 1070, 1857],i)
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        IC3(bad_case, [2669, 1070, 1857, 1],i)
+# genetate realization
+num_realization = 10
+list_realization = build_probable_matrices(adjacency_matrix, mc=num_realization, p=0.1)
+print("generate " + str(num_realization) + " realization successfully")
 
-# # Run algorithms
-# print("start running CELF...")
-# S, spread, t = CELF(list_realization)
-# print("<----------------result CELF Algorithm ----------------->")
-# print("celf output =  " + str(S))
-# print("mean spread value = " + str(spread))
-# print("run time = " + str(t[0]))
 
-#### simple fast test
-# list_realization = [[[0, 1, 1], [1, 0, 1], [1, 1, 0]], [[0, 1, 0], [1, 0, 1], [0, 1, 0]]]
-# adjacency_matrix = [[0,0.5,1],[0.5,0,0.25],[1,0.25,0]]
-# num_node = 3
+# Run algorithms
+print("start running CELF...")
+save_IC_1 = []
+S, spread, t = CELF(list_realization)
+print("<----------------result CELF Algorithm ----------------->")
+print("celf output =  " + str(S))
+print("mean spread value = " + str(spread))
+print("run time = " + str(t[0]))
+
+
